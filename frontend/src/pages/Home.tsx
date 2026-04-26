@@ -404,7 +404,7 @@ export const Home: React.FC<HomeProps> = ({ showNotification }) => {
 
   return (
     <motion.div 
-      className="w-full max-w-[1520px] mx-auto px-3 sm:px-4 lg:px-5 py-8 sm:py-12"
+      className="w-full max-w-[1520px] mx-auto px-3 sm:px-4 lg:px-5 py-3 sm:py-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -419,7 +419,7 @@ export const Home: React.FC<HomeProps> = ({ showNotification }) => {
       </motion.div>
 
       <motion.header 
-        className="mb-8 mt-10"
+        className="mb-8 mt-2"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
