@@ -18,6 +18,7 @@ class Settings:
     # REDIS CONFIG
     # -----------------------------
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
+    
 
     # -----------------------------
     # AUTH CONFIG
