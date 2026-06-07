@@ -10,6 +10,8 @@ class Settings:
 
     HOST: str = os.getenv("HOST", "127.0.0.1")
     PORT: int = int(os.getenv("PORT", 8000))
+    
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:3000")
 
     # Mongo
     MONGO_URI: str = os.getenv("MONGO_URI", "")
