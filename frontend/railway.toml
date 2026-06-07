@@ -2,4 +2,4 @@
 buildCommand = "npm run build"
 
 [deploy]
-startCommand = "npx serve dist --listen tcp://0.0.0.0:$PORT --no-clipboard"
+startCommand = "npx vite preview --host 0.0.0.0 --port $PORT"
