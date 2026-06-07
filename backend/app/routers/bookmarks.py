@@ -41,7 +41,17 @@ async def add_bookmark(
     data = bookmark.dict()
     data["user_id"] = user_id
 
-    result = await db.bookmarks.insert_one(data)
+    try:
+        result = await db.bookmarks.insert_one(data)
+    except DuplicateKeyError:
+        existing = await db.bookmarks.find_one({
+            "user_id": user_id,
+            "article_id": bookmark.article_id
+        })
+        return {
+            "message": "Already bookmarked",
+            "bookmark_id": str(existing["_id"]),
+        }
     await invalidate_user_action_cache(user_id, "bookmarks")
     
     # ✅ Collect implicit sentiment feedback (bookmark = positive signal)
