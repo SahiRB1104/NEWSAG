@@ -12,15 +12,18 @@ _redis_raw_client: Optional[redis.Redis] = None  # For binary data
 
 
 async def get_redis(raw: bool = False) -> redis.Redis:
-    """Get Redis client singleton. Use raw=True for binary data."""
     global _redis_client, _redis_raw_client
     
     if raw:
         if _redis_raw_client is None:
             try:
-                _redis_raw_client = await redis.from_url(
+                _redis_raw_client = redis.from_url(  # no await
                     settings.REDIS_URL,
-                    decode_responses=False  # Keep as bytes
+                    decode_responses=False,
+                    socket_connect_timeout=5,
+                    socket_timeout=5,
+                    retry_on_timeout=True,
+                    health_check_interval=30,
                 )
             except Exception as e:
                 print(f"[REDIS RAW INIT ERROR] {e}")
@@ -29,10 +32,14 @@ async def get_redis(raw: bool = False) -> redis.Redis:
     
     if _redis_client is None:
         try:
-            _redis_client = await redis.from_url(
+            _redis_client = redis.from_url(  # no await
                 settings.REDIS_URL,
                 encoding="utf-8",
-                decode_responses=True
+                decode_responses=True,
+                socket_connect_timeout=5,
+                socket_timeout=5,
+                retry_on_timeout=True,
+                health_check_interval=30,
             )
         except Exception as e:
             print(f"[REDIS INIT ERROR] {e}")
@@ -63,11 +70,7 @@ async def close_redis():
 # CACHE HELPERS (REDIS-BACKED)
 # -----------------------------
 async def get_from_cache(key: str, raw: bool = False) -> Optional[Union[Any, bytes]]:
-    """
-    Retrieve value from Redis cache
-    :param raw: If True, return raw bytes (for binary data like audio)
-    Returns: Deserialized value, raw bytes, or None
-    """
+    global _redis_client, _redis_raw_client
     try:
         client = await get_redis(raw=raw)
         if client is None:
@@ -75,42 +78,39 @@ async def get_from_cache(key: str, raw: bool = False) -> Optional[Union[Any, byt
         value = await client.get(key)
         if value:
             if raw:
-                return value  # Return raw bytes
+                return value
             return json.loads(value)
         return None
     except Exception as e:
         print(f"[REDIS GET ERROR] {key}: {e}")
+        # Force reconnect on next call
+        _redis_client = None
+        _redis_raw_client = None
         return None
 
 
 async def set_in_cache(key: str, value: Union[Any, bytes], ttl: int = None, raw: bool = False):
-    """
-    Store value in Redis cache with optional TTL
-    :param key: cache key
-    :param value: value to cache (will be JSON-serialized unless raw=True)
-    :param ttl: time-to-live in seconds (default: CACHE_TTL_NEWS)
-    :param raw: If True, store raw bytes (for binary data like audio)
-    """
+    global _redis_client, _redis_raw_client
     try:
         client = await get_redis(raw=raw)
         if client is None:
             return
-        
         if raw:
-            data = value  # Store raw bytes
+            data = value
         else:
             data = json.dumps(value)
-        
         if ttl is None:
             ttl = settings.CACHE_TTL_NEWS
-        
         await client.setex(key, ttl, data)
     except Exception as e:
         print(f"[REDIS SET ERROR] {key}: {e}")
+        # Force reconnect on next call
+        _redis_client = None
+        _redis_raw_client = None
 
 
 async def delete_from_cache(key: str):
-    """Delete key from Redis cache"""
+    global _redis_client, _redis_raw_client
     try:
         client = await get_redis()
         if client is None:
@@ -118,6 +118,8 @@ async def delete_from_cache(key: str):
         await client.delete(key)
     except Exception as e:
         print(f"[REDIS DELETE ERROR] {key}: {e}")
+        _redis_client = None
+        _redis_raw_client = None
 
 
 async def clear_pattern(pattern: str):
