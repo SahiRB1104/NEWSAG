@@ -5,7 +5,7 @@ from app.core.database import MongoDB
 from app.core.logging import configure_logging
 from app.core.indexes import create_indexes
 from app.core.cache import get_redis, close_redis
-from app.core.config import Settings
+from app.core.config import settings
 from app.services.model_manager import prewarm_models_background, model_manager
 from app.services.chat_llm import chat_llm
 
@@ -38,7 +38,7 @@ app = FastAPI(
 # --------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in Settings.CORS_ORIGINS.split(",")],
+    allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
