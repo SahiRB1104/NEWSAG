@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, AlertTriangle, Lightbulb, Target, TrendingUp, Database, BarChart3 } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertTriangle, Lightbulb, Target, TrendingUp, BarChart3 } from 'lucide-react';
 
 interface QualityMetrics {
   total_samples?: number;
