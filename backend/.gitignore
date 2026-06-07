@@ -7,3 +7,5 @@ __pycache__/
 logs/
 
 models/
+
+requirements_check.txt
