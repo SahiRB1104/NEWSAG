@@ -12,6 +12,8 @@
 
 AI-augmented news reader for personalized discovery, saving, summaries, sentiment, credibility checks, and lightweight analytics.
 
+# Live -https://newsag-production.up.railway.app
+
 ## 🧭 Project Overview
 
 NewsAura is a full-stack news workspace that helps users browse curated topic feeds, save articles, read later, and understand stories faster with server-side summaries, sentiment labels, and a chatbot assistant. It exists to cut down the time spent sifting through large volumes of news while keeping everything tied to a user profile, reading history, and admin review workflow.
