@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { BarChart3, Bot, CheckCircle2, ClipboardList, LogOut, Menu, Settings, Smile, X } from 'lucide-react';
+import { BarChart3, Bot, CheckCircle2, ClipboardList, LogOut, Menu, Settings, Smile, UserRound, X } from 'lucide-react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { useClerk } from '@clerk/clerk-react';
+import { useClerk, useUser } from '@clerk/clerk-react';
 import AdminOverview from './AdminOverview.tsx';
 import CredibilityQueue from './CredibilityQueue.tsx';
 import SentimentFeedback from './SentimentFeedback.tsx';
@@ -16,7 +16,13 @@ interface AdminLayoutProps {
 export const AdminDashboard: React.FC<AdminLayoutProps> = ({ showNotification }) => {
   const location = useLocation();
   const { signOut } = useClerk();
+  const { user } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const adminDisplayName =
+    user?.username ||
+    user?.fullName ||
+    user?.primaryEmailAddress?.emailAddress ||
+    'Admin';
 
   const navItems = [
     { path: '/admin/overview', label: 'Overview', icon: BarChart3 },
@@ -112,8 +118,16 @@ export const AdminDashboard: React.FC<AdminLayoutProps> = ({ showNotification })
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {navItems.find((item) => item.path === location.pathname)?.label || 'Admin Dashboard'}
           </h2>
-          <div className="text-sm text-slate-500 dark:text-slate-400">
-            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="hidden sm:flex items-center gap-2 min-w-0 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <UserRound size={16} className="shrink-0 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+              <span className="max-w-[180px] truncate text-sm font-medium text-slate-700 dark:text-slate-200" title={adminDisplayName}>
+                {adminDisplayName}
+              </span>
+            </div>
+            <div className="text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </div>
           </div>
         </header>
 
