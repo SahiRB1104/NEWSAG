@@ -79,7 +79,7 @@ export const Sidebar: React.FC = () => {
           <span className="sidebar-btn-label">{cat.label}</span>
           {isLocked && (
             <span className="sidebar-lock-indicator" aria-hidden="true">
-              <Lock size={10} />
+              <Lock size={11} strokeWidth={2.2} />
             </span>
           )}
         </Link>
@@ -262,7 +262,7 @@ export const Sidebar: React.FC = () => {
         }
 
         .sidebar-icon-rail:hover .sidebar-icon-btn.sidebar-locked {
-          padding-right: 38px;
+          padding-right: 14px;
         }
 
         .sidebar-btn-icon {
@@ -289,37 +289,39 @@ export const Sidebar: React.FC = () => {
           flex: 1;
         }
 
-        .sidebar-lock-indicator {
-          position: absolute;
-          top: 50%;
-          right: 10px;
-          transform: translateY(-50%);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 18px;
-          height: 18px;
-          border-radius: 999px;
-          color: rgb(133, 77, 14);
-          background: linear-gradient(135deg, rgb(255, 244, 214) 0%, rgb(253, 230, 138) 100%);
-          border: 1px solid rgb(245, 158, 11);
-          box-shadow: 0 2px 6px -2px rgba(245, 158, 11, 0.65);
-          flex-shrink: 0;
-        }
+      .sidebar-lock-indicator {
+        position: absolute;
+
+        top: 8px;
+        right: 8px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #f59e0b;
+
+        background: transparent;
+        border:none;
+        box-shadow: none;
+
+        width: auto;
+        height: auto;
+      }
 
         .dark .sidebar-lock-indicator {
-          color: rgb(251, 191, 36);
-          background: linear-gradient(135deg, rgba(120, 53, 15, 0.42) 0%, rgba(180, 83, 9, 0.35) 100%);
-          border-color: rgba(251, 191, 36, 0.75);
-          box-shadow: 0 2px 8px -3px rgba(251, 191, 36, 0.55);
+          
+          background: rgb(251, 191, 36);
+          color: rgb(15, 23, 42);
+          border-color: rgb(31, 41, 55);
         }
 
-        .sidebar-icon-btn.sidebar-locked {
-          padding-right: 38px;
-          color: rgb(100, 116, 139);
-          background: rgba(248, 250, 252, 0.8);
-          box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.9);
-        }
+      .sidebar-icon-btn.sidebar-locked {
+        opacity: 0.80;
+        color: rgb(100, 116, 139);
+        background: rgba(248, 250, 252, 0.55);
+        box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.6);
+      }
 
         .dark .sidebar-icon-btn.sidebar-locked {
           color: rgb(148, 163, 184);
