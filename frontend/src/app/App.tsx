@@ -20,6 +20,7 @@ const AppLayout: React.FC<{ showNotification: (msg: string, type?: 'error' | 'su
   const isAuthPage = location.pathname === '/login';
   const isAdminPage = location.pathname.startsWith('/admin');
   const isProfilePage = location.pathname === '/profile';
+  const isHomePage = location.pathname === '/';
   const { isLoaded, isSignedIn, getToken } = useAuth();
 
   useEffect(() => {
@@ -110,7 +111,7 @@ const AppLayout: React.FC<{ showNotification: (msg: string, type?: 'error' | 'su
       {/* Scroll to top button */}
       <ScrollToTop />
       
-      {!isAdminPage && !isProfilePage && (
+      {isHomePage && (
         <ChatBot 
           onError={(msg) => showNotification(msg, 'error')}
         />
