@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { AlertTriangle, ChevronLeft, ChevronRight, Download, ExternalLink, Flag, Search } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Download, ExternalLink, Flag, RefreshCw, Search } from 'lucide-react';
 import {
   adminApi,
   type SentimentFeedback as SentimentFeedbackType,
@@ -94,15 +94,24 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
       } catch {
         notify.warning('Sentiment analytics visuals are temporarily unavailable.');
       }
+      return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       notify.error(`Failed to load sentiment samples: ${message}`);
+      return false;
     }
   }, [executeLatest]);
 
   useEffect(() => {
     fetchSamples();
   }, [fetchSamples]);
+
+  const handleManualRefresh = async () => {
+    const refreshed = await fetchSamples();
+    if (refreshed) {
+      notify.success('Sentiment feedback refreshed.');
+    }
+  };
 
   const normalizeSentiment = (label?: string): Exclude<FilterValue, 'all'> => {
     const lower = String(label ?? '').trim().toLowerCase();
@@ -556,14 +565,25 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
               Sentiment Feedback Browser
             </h2>
-            <button
-              onClick={handleExport}
-              disabled={!filteredSamples.length}
-              className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download size={16} aria-hidden="true" />
-              Export Filtered
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={handleManualRefresh}
+                disabled={loading}
+                className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
+                {loading ? 'Refreshing...' : 'Refresh'}
+              </button>
+              <button
+                onClick={handleExport}
+                disabled={!filteredSamples.length}
+                className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download size={16} aria-hidden="true" />
+                Export Filtered
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
