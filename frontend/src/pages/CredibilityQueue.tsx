@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Check, Clock3, X } from 'lucide-react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { Check, Clock3, RefreshCw, X } from 'lucide-react';
 import { adminApi } from '../services/admin.service';
 import { notify } from '../lib/notify';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -37,18 +37,27 @@ export const CredibilityQueue: React.FC<CredibilityQueueProps> = ({ showNotifica
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [verifying, setVerifying] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        await executeLatest(() => adminApi.getPendingReports(50), (result) => result.reports);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        showNotification(`Failed to load credibility reports: ${message}`, 'error');
-      }
-    };
-
-    fetchReports();
+  const fetchReports = useCallback(async () => {
+    try {
+      await executeLatest(() => adminApi.getPendingReports(50), (result) => result.reports);
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      showNotification(`Failed to load credibility reports: ${message}`, 'error');
+      return false;
+    }
   }, [executeLatest, showNotification]);
+
+  useEffect(() => {
+    void fetchReports();
+  }, [fetchReports]);
+
+  const handleManualRefresh = async () => {
+    const refreshed = await fetchReports();
+    if (refreshed) {
+      showNotification('Credibility queue refreshed', 'success');
+    }
+  };
 
   const handleVerify = async (reportId: string) => {
     setVerifying(reportId);
@@ -82,7 +91,7 @@ export const CredibilityQueue: React.FC<CredibilityQueueProps> = ({ showNotifica
     }
   };
 
-  if (loading) {
+  if (loading && reports.length === 0) {
     return (
       <div className="py-4">
         <BookmarkSkeleton rows={4} />
@@ -95,12 +104,7 @@ export const CredibilityQueue: React.FC<CredibilityQueueProps> = ({ showNotifica
       <ErrorState
         title="Failed to load credibility queue"
         message={fetchError}
-        onRetry={() => {
-          executeLatest(() => adminApi.getPendingReports(50), (result) => result.reports).catch((err) => {
-            const message = err instanceof Error ? err.message : 'Unknown error';
-            showNotification(`Failed to load credibility reports: ${message}`, 'error');
-          });
-        }}
+        onRetry={fetchReports}
       />
     );
   }
@@ -112,9 +116,20 @@ export const CredibilityQueue: React.FC<CredibilityQueueProps> = ({ showNotifica
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
             Credibility Queue
           </h2>
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-            {reports.length} pending
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              {reports.length} pending
+            </span>
+            <button
+              type="button"
+              onClick={handleManualRefresh}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
         </div>
 
         {reports.length === 0 ? (
