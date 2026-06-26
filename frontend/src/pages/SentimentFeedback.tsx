@@ -32,15 +32,183 @@ interface SentimentFeedbackProps {
   showNotification: (msg: string, type?: 'error' | 'success' | 'warning' | 'info') => void;
 }
 
-export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotification }) => {
-  type FilterValue = 'all' | 'positive' | 'neutral' | 'negative';
-  type SourceFilterValue = 'all' | 'explicit' | 'implicit_bookmark' | 'implicit_read_later';
+type FilterValue = 'all' | 'positive' | 'neutral' | 'negative';
+type SourceFilterValue = 'all' | 'explicit' | 'implicit_bookmark' | 'implicit_read_later';
+type SentimentLabel = Exclude<FilterValue, 'all'>;
 
+const sentimentLabels: SentimentLabel[] = ['positive', 'neutral', 'negative'];
+
+const normalizeSentiment = (label?: string): SentimentLabel => {
+  const lower = String(label ?? '').trim().toLowerCase();
+  if (lower.includes('pos')) return 'positive';
+  if (lower.includes('neg')) return 'negative';
+  return 'neutral';
+};
+
+const formatSentimentLabel = (label?: string) => {
+  const normalized = normalizeSentiment(label);
+  if (normalized === 'positive') return 'Positive';
+  if (normalized === 'negative') return 'Negative';
+  return 'Neutral';
+};
+
+const formatSourceLabel = (source?: string) => {
+  if (source === 'implicit_bookmark') return 'Implicit Bookmark';
+  if (source === 'implicit_read_later') return 'Implicit Read Later';
+  if (source === 'explicit') return 'Explicit';
+  return source ?? 'Unknown';
+};
+
+const confidenceToPercent = (confidence?: number) => {
+  if (!Number.isFinite(confidence)) return 0;
+
+  const value = confidence as number;
+  const percent = value <= 1 ? value * 100 : value;
+  return Math.max(0, Math.min(100, percent));
+};
+
+const getSentimentColor = (label?: string) => {
+  switch (normalizeSentiment(label)) {
+    case 'positive':
+      return 'bg-emerald-900/65 text-emerald-200 border border-white/15';
+    case 'neutral':
+      return 'bg-slate-900/65 text-slate-100 border border-white/15';
+    case 'negative':
+      return 'bg-rose-900/65 text-rose-200 border border-white/15';
+    default:
+      return '';
+  }
+};
+
+const heatCellClass = (value: number, sentiment: SentimentLabel) => {
+  if (value <= 0) return 'bg-slate-100 dark:bg-slate-800';
+  if (sentiment === 'positive') {
+    if (value >= 10) return 'bg-emerald-500';
+    if (value >= 5) return 'bg-emerald-300';
+    return 'bg-emerald-200';
+  }
+  if (sentiment === 'negative') {
+    if (value >= 10) return 'bg-rose-500';
+    if (value >= 5) return 'bg-rose-300';
+    return 'bg-rose-200';
+  }
+  if (value >= 10) return 'bg-slate-500';
+  if (value >= 5) return 'bg-slate-300';
+  return 'bg-slate-200';
+};
+
+const SentimentAnalyticsCharts = React.memo(({
+  trendPoints,
+  sentimentStats,
+}: {
+  trendPoints: SentimentTrendPoint[];
+  sentimentStats: any;
+}) => {
+  const pieData = useMemo(() => [
+    { name: 'Positive', value: sentimentStats?.counts?.positive ?? 0, color: '#10b981' },
+    { name: 'Neutral', value: sentimentStats?.counts?.neutral ?? 0, color: '#64748b' },
+    { name: 'Negative', value: sentimentStats?.counts?.negative ?? 0, color: '#f43f5e' },
+  ], [sentimentStats]);
+
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Sentiment Trend (30 Days)</h3>
+        <div className="h-64">
+          {trendPoints.length ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trendPoints}>
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="positive_ratio" name="Positive %" stroke="#10b981" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="neutral_ratio" name="Neutral %" stroke="#64748b" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="negative_ratio" name="Negative %" stroke="#f43f5e" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-sm text-slate-500 dark:text-slate-400">Trend data unavailable</div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Distribution</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={90}>
+                {pieData.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const SentimentHeatmap = React.memo(({
+  heatmapCells,
+  heatmapSources,
+}: {
+  heatmapCells: SentimentHeatmapCell[];
+  heatmapSources: string[];
+}) => {
+  const heatmapByKey = useMemo(() => {
+    const next = new Map<string, SentimentHeatmapCell>();
+    heatmapCells.forEach((cell) => {
+      next.set(`${cell.source}:${cell.sentiment}`, cell);
+    });
+    return next;
+  }, [heatmapCells]);
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Source-wise Sentiment Heatmap</h3>
+      <div className="overflow-x-auto">
+        <div className="min-w-[560px]">
+          <div className="grid grid-cols-[180px_repeat(3,minmax(0,1fr))] gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+            <div>Source</div>
+            <div>Positive</div>
+            <div>Neutral</div>
+            <div>Negative</div>
+          </div>
+          <div className="space-y-2">
+            {heatmapSources.length ? heatmapSources.map((source) => (
+              <div key={source} className="grid grid-cols-[180px_repeat(3,minmax(0,1fr))] gap-2 items-center">
+                <div className="text-xs text-slate-700 dark:text-slate-300 truncate pr-2">{formatSourceLabel(source)}</div>
+                {sentimentLabels.map((sentiment) => {
+                  const value = heatmapByKey.get(`${source}:${sentiment}`)?.value ?? 0;
+                  return (
+                    <div key={`${source}-${sentiment}`} className={`h-8 rounded-md flex items-center justify-center text-xs font-semibold ${heatCellClass(value, sentiment)}`}>
+                      {value}
+                    </div>
+                  );
+                })}
+              </div>
+            )) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">No heatmap data available.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotification }) => {
   const {
     data: samples,
     loading,
     error: fetchError,
     executeLatest,
+    setData: setSamplesData,
   } = useAsyncState<SentimentFeedbackType[]>({
     initialData: [],
     getErrorMessage: (err) => err instanceof Error ? err.message : 'Unknown error',
@@ -113,48 +281,6 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
     }
   };
 
-  const normalizeSentiment = (label?: string): Exclude<FilterValue, 'all'> => {
-    const lower = String(label ?? '').trim().toLowerCase();
-    if (lower.includes('pos')) return 'positive';
-    if (lower.includes('neg')) return 'negative';
-    return 'neutral';
-  };
-
-  const formatSentimentLabel = (label?: string) => {
-    const normalized = normalizeSentiment(label);
-    if (normalized === 'positive') return 'Positive';
-    if (normalized === 'negative') return 'Negative';
-    return 'Neutral';
-  };
-
-  const formatSourceLabel = (source?: string) => {
-    if (source === 'implicit_bookmark') return 'Implicit Bookmark';
-    if (source === 'implicit_read_later') return 'Implicit Read Later';
-    if (source === 'explicit') return 'Explicit';
-    return source ?? 'Unknown';
-  };
-
-  const confidenceToPercent = (confidence?: number) => {
-    if (!Number.isFinite(confidence)) return 0;
-
-    const value = confidence as number;
-    const percent = value <= 1 ? value * 100 : value;
-    return Math.max(0, Math.min(100, percent));
-  };
-
-  const getSentimentColor = (label?: string) => {
-    switch (normalizeSentiment(label)) {
-      case 'positive':
-        return 'bg-emerald-900/65 text-emerald-200 border border-white/15';
-      case 'neutral':
-        return 'bg-slate-900/65 text-slate-100 border border-white/15';
-      case 'negative':
-        return 'bg-rose-900/65 text-rose-200 border border-white/15';
-      default:
-        return '';
-    }
-  };
-
   const filteredSamples = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -196,46 +322,29 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
   const visibleStart = filteredSamples.length ? (currentPage - 1) * pageSize + 1 : 0;
   const visibleEnd = Math.min(currentPage * pageSize, filteredSamples.length);
 
-  const pieData = [
-    { name: 'Positive', value: sentimentStats?.counts?.positive ?? 0, color: '#10b981' },
-    { name: 'Neutral', value: sentimentStats?.counts?.neutral ?? 0, color: '#64748b' },
-    { name: 'Negative', value: sentimentStats?.counts?.negative ?? 0, color: '#f43f5e' },
-  ];
-
-  const heatValue = (source: string, sentiment: 'positive' | 'neutral' | 'negative') => {
-    return heatmapCells.find((cell) => cell.source === source && cell.sentiment === sentiment);
-  };
-
-  const heatCellClass = (value: number, sentiment: 'positive' | 'neutral' | 'negative') => {
-    if (value <= 0) return 'bg-slate-100 dark:bg-slate-800';
-    if (sentiment === 'positive') {
-      if (value >= 10) return 'bg-emerald-500';
-      if (value >= 5) return 'bg-emerald-300';
-      return 'bg-emerald-200';
-    }
-    if (sentiment === 'negative') {
-      if (value >= 10) return 'bg-rose-500';
-      if (value >= 5) return 'bg-rose-300';
-      return 'bg-rose-200';
-    }
-    if (value >= 10) return 'bg-slate-500';
-    if (value >= 5) return 'bg-slate-300';
-    return 'bg-slate-200';
-  };
+  const updateSample = useCallback((id: string, updater: (sample: SentimentFeedbackType) => SentimentFeedbackType) => {
+    setSamplesData((current) => current.map((sample) => sample.id === id ? updater(sample) : sample));
+  }, [setSamplesData]);
 
   useEffect(() => {
     if (!selectedSample) {
       setPanelSummary('');
+      setSummaryLoading(false);
       return;
     }
 
     setOverrideLabel(normalizeSentiment(selectedSample.final_label || selectedSample.ai_label));
     setOverrideReason('');
     setFlagReason(selectedSample.review_reason || '');
+    setPanelSummary('');
+    let ignore = false;
 
     const loadSummary = async () => {
       if (!selectedSample.article_url) {
-        setPanelSummary(selectedSample.text || 'No summary available for this entry.');
+        setSummaryLoading(false);
+        if (!ignore) {
+          setPanelSummary(selectedSample.text || 'No summary available for this entry.');
+        }
         return;
       }
 
@@ -250,15 +359,25 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
           selectedSample.source,
           selectedSample.article_id
         );
-        setPanelSummary(response.summary || selectedSample.text || 'No summary available.');
+        if (!ignore) {
+          setPanelSummary(response.summary || selectedSample.text || 'No summary available.');
+        }
       } catch {
-        setPanelSummary(selectedSample.text || 'No summary available for this entry.');
+        if (!ignore) {
+          setPanelSummary(selectedSample.text || 'No summary available for this entry.');
+        }
       } finally {
-        setSummaryLoading(false);
+        if (!ignore) {
+          setSummaryLoading(false);
+        }
       }
     };
 
     void loadSummary();
+
+    return () => {
+      ignore = true;
+    };
   }, [selectedSample]);
 
   const handleOverrideSave = async () => {
@@ -267,6 +386,11 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
       setPanelBusy(true);
       await adminApi.overrideSentimentLabel(selectedSample.id, overrideLabel, overrideReason.trim() || undefined);
       notify.success('Manual sentiment override saved.');
+      updateSample(selectedSample.id, (sample) => ({
+        ...sample,
+        final_label: overrideLabel,
+        user_label: overrideLabel,
+      }));
       setSelectedSample((current) =>
         current
           ? {
@@ -274,10 +398,9 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
               final_label: overrideLabel,
               user_label: overrideLabel,
               sentiment_history: current.sentiment_history,
-            }
+          }
           : current
       );
-      await fetchSamples();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       notify.error(`Failed to save manual override: ${message}`);
@@ -292,6 +415,16 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
       setPanelBusy(true);
       const result = await adminApi.reanalyzeSentimentFeedback(selectedSample.id);
       notify.success(`Re-analyzed: ${result.previous_ai_label || 'Unknown'} → ${result.new_ai_label}`);
+      updateSample(selectedSample.id, (sample) => ({
+        ...sample,
+        ai_label: result.new_ai_label as SentimentFeedbackType['ai_label'],
+        ai_confidence: result.new_ai_confidence,
+        final_label: result.new_final_label as SentimentFeedbackType['final_label'],
+        sentiment_history: [
+          ...(sample.sentiment_history || []),
+          result.sentiment_history as any,
+        ],
+      }));
       setSelectedSample((current) =>
         current
           ? {
@@ -303,10 +436,9 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
                 ...(current.sentiment_history || []),
                 result.sentiment_history as any,
               ],
-            }
+          }
           : current
       );
-      await fetchSamples();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       notify.error(`Failed to re-analyze feedback: ${message}`);
@@ -342,16 +474,20 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
       setPanelBusy(true);
       await adminApi.flagSentimentFeedback(selectedSample.id, flagged, flagReason.trim() || undefined);
       notify.success(flagged ? 'Entry flagged for review.' : 'Entry unflagged.');
+      updateSample(selectedSample.id, (sample) => ({
+        ...sample,
+        review_flag: flagged,
+        review_reason: flagReason.trim() || undefined,
+      }));
       setSelectedSample((current) =>
         current
           ? {
               ...current,
               review_flag: flagged,
               review_reason: flagReason.trim() || undefined,
-            }
+          }
           : current
       );
-      await fetchSamples();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       notify.error(`Failed to update review flag: ${message}`);
@@ -450,45 +586,7 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
             </div>
           </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Sentiment Trend (30 Days)</h3>
-          <div className="h-64">
-            {trendPoints.length ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendPoints}>
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="positive_ratio" name="Positive %" stroke="#10b981" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="neutral_ratio" name="Neutral %" stroke="#64748b" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="negative_ratio" name="Negative %" stroke="#f43f5e" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-sm text-slate-500 dark:text-slate-400">Trend data unavailable</div>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Distribution</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={90}>
-                  {pieData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+      <SentimentAnalyticsCharts trendPoints={trendPoints} sentimentStats={sentimentStats} />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
@@ -555,37 +653,7 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Source-wise Sentiment Heatmap</h3>
-        <div className="overflow-x-auto">
-          <div className="min-w-[560px]">
-            <div className="grid grid-cols-[180px_repeat(3,minmax(0,1fr))] gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-              <div>Source</div>
-              <div>Positive</div>
-              <div>Neutral</div>
-              <div>Negative</div>
-            </div>
-            <div className="space-y-2">
-              {heatmapSources.length ? heatmapSources.map((source) => (
-                <div key={source} className="grid grid-cols-[180px_repeat(3,minmax(0,1fr))] gap-2 items-center">
-                  <div className="text-xs text-slate-700 dark:text-slate-300 truncate pr-2">{formatSourceLabel(source)}</div>
-                  {(['positive', 'neutral', 'negative'] as const).map((sentiment) => {
-                    const cell = heatValue(source, sentiment);
-                    const value = cell?.value ?? 0;
-                    return (
-                      <div key={`${source}-${sentiment}`} className={`h-8 rounded-md flex items-center justify-center text-xs font-semibold ${heatCellClass(value, sentiment)}`}>
-                        {value}
-                      </div>
-                    );
-                  })}
-                </div>
-              )) : (
-                <p className="text-sm text-slate-500 dark:text-slate-400">No heatmap data available.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <SentimentHeatmap heatmapCells={heatmapCells} heatmapSources={heatmapSources} />
 
      
 
