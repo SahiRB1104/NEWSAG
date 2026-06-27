@@ -75,6 +75,8 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
   const [showFeedbackMenu, setShowFeedbackMenu] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<string | null>(initialFeedbackSubmitted ?? null);
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [isBookmarkPending, setIsBookmarkPending] = useState(false);
+  const [isReadLaterPending, setIsReadLaterPending] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportSubmitted, setReportSubmitted] = useState(Boolean(initialIsReported));
@@ -118,7 +120,19 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
   }, [feedbackSubmitted]);
 
   const handleSentimentFeedback = useCallback(async (userLabel: string) => {
+    if (isSubmittingFeedback || feedbackSubmitted) return;
+
+    const previousFeedback = feedbackSubmitted;
+    setFeedbackSubmitted(userLabel);
+    setShowFeedbackMenu(false);
     setIsSubmittingFeedback(true);
+    if (articleStateKey) {
+      onActionStateChange?.({
+        articleKey: articleStateKey,
+        feedbackSubmitted: userLabel,
+      });
+    }
+
     try {
       await newsService.rateSentiment({
         article_id: articleId,
@@ -129,24 +143,37 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
         ai_confidence: article.sentiment?.confidence || 0.5,
         user_label: userLabel,
       });
-      setFeedbackSubmitted(userLabel);
-      setShowFeedbackMenu(false);
+    } catch (err: any) {
+      setFeedbackSubmitted(previousFeedback);
       if (articleStateKey) {
         onActionStateChange?.({
           articleKey: articleStateKey,
-          feedbackSubmitted: userLabel,
+          feedbackSubmitted: previousFeedback,
         });
       }
-    } catch (err: any) {
       onError?.(err.message || 'Failed to submit feedback');
     } finally {
       setIsSubmittingFeedback(false);
     }
-  }, [articleId, article.url, article.title, article.description, article.sentiment, articleStateKey, onActionStateChange, onError]);
+  }, [isSubmittingFeedback, feedbackSubmitted, articleStateKey, onActionStateChange, articleId, article.url, article.title, article.description, article.sentiment, onError]);
 
   // ✅ Handle Report Misleading
   const handleReportMisleading = useCallback(async () => {
+    if (isSubmittingFeedback || reportSubmitted) return;
+
+    const previousReportSubmitted = reportSubmitted;
+    const submittedReason = reportReason;
+    setReportSubmitted(true);
+    setShowReportModal(false);
+    setReportReason('');
     setIsSubmittingFeedback(true);
+    if (articleStateKey) {
+      onActionStateChange?.({
+        articleKey: articleStateKey,
+        reportSubmitted: true,
+      });
+    }
+
     try {
       await newsService.reportMisleading({
         article_id: articleId,
@@ -158,23 +185,22 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
         ai_label: article.credibility?.label || 'Unknown',
         ai_score: article.credibility?.score || 0.5,
         ai_source: article.credibility?.source || 'unknown',
-        reason: reportReason,
+        reason: submittedReason,
       });
-      setReportSubmitted(true);
-      setShowReportModal(false);
-      setReportReason('');
+    } catch (err: any) {
+      setReportSubmitted(previousReportSubmitted);
+      setReportReason(submittedReason);
       if (articleStateKey) {
         onActionStateChange?.({
           articleKey: articleStateKey,
-          reportSubmitted: true,
+          reportSubmitted: previousReportSubmitted,
         });
       }
-    } catch (err: any) {
       onError?.(err.message || 'Failed to submit report');
     } finally {
       setIsSubmittingFeedback(false);
     }
-  }, [articleId, article.url, article.title, article.description, article.content, sourceValue, article.credibility, reportReason, articleStateKey, onActionStateChange, onError]);
+  }, [isSubmittingFeedback, reportSubmitted, reportReason, articleStateKey, onActionStateChange, articleId, article.url, article.title, article.description, article.content, sourceValue, article.credibility, onError]);
 
   const handleSummary = useCallback(async () => {
     setIsModalOpen(true);
@@ -254,6 +280,18 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
   }, [article.url, article.content, article.description, article.title, sourceValue, articleId, selectedLang]);
 
   const toggleBookmark = useCallback(async () => {
+    if (isBookmarkPending) return;
+
+    const nextState = !isBookmarked;
+    setIsBookmarked(nextState);
+    setIsBookmarkPending(true);
+    if (articleStateKey) {
+      onActionStateChange?.({
+        articleKey: articleStateKey,
+        isBookmarked: nextState,
+      });
+    }
+
     try {
       const articleIdValue = article.url || article.id;
 
@@ -270,20 +308,33 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
           category: article.category,
         });
       }
-      const nextState = !isBookmarked;
-      setIsBookmarked(nextState);
+    } catch (err: any) {
+      setIsBookmarked(isBookmarked);
       if (articleStateKey) {
         onActionStateChange?.({
           articleKey: articleStateKey,
-          isBookmarked: nextState,
+          isBookmarked,
         });
       }
-    } catch (err: any) {
       onError?.(err.message || ERROR_MESSAGES.ACTION_FAILED);
+    } finally {
+      setIsBookmarkPending(false);
     }
-  }, [article.url, article.id, article.title, article.description, article.image_url, article.category, sourceValue, isBookmarked, articleStateKey, onActionStateChange, onError]);
+  }, [isBookmarkPending, isBookmarked, articleStateKey, onActionStateChange, article.url, article.id, article.title, article.description, article.image_url, article.category, sourceValue, onError]);
 
   const toggleReadLater = useCallback(async () => {
+    if (isReadLaterPending) return;
+
+    const nextState = !isInReadLater;
+    setIsInReadLater(nextState);
+    setIsReadLaterPending(true);
+    if (articleStateKey) {
+      onActionStateChange?.({
+        articleKey: articleStateKey,
+        isInReadLater: nextState,
+      });
+    }
+
     try {
       const articleIdValue = article.url || article.id;
 
@@ -298,18 +349,19 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
           category: article.category,
         });
       }
-      const nextState = !isInReadLater;
-      setIsInReadLater(nextState);
+    } catch (err: any) {
+      setIsInReadLater(isInReadLater);
       if (articleStateKey) {
         onActionStateChange?.({
           articleKey: articleStateKey,
-          isInReadLater: nextState,
+          isInReadLater,
         });
       }
-    } catch (err: any) {
       onError?.(err.message || ERROR_MESSAGES.ACTION_FAILED);
+    } finally {
+      setIsReadLaterPending(false);
     }
-  }, [article.url, article.id, article.title, article.category, sourceValue, isInReadLater, articleStateKey, onActionStateChange, onError]);
+  }, [isReadLaterPending, isInReadLater, articleStateKey, onActionStateChange, article.url, article.id, article.title, article.category, sourceValue, onError]);
 
   const trackReadActivity = useCallback(() => {
     const articleUrl = article.url;
@@ -379,14 +431,16 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
             <div className="flex gap-1.5 shrink-0">
               <button 
                 onClick={toggleBookmark}
-                className={`${ACTION_BTN_BASE} ${isBookmarked ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE}`}
+                disabled={isBookmarkPending}
+                className={`${ACTION_BTN_BASE} ${isBookmarked ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE} disabled:cursor-wait disabled:opacity-80`}
                 title="Bookmark"
               >
                 <Bookmark className={`${ACTION_ICON_CLASS} ${isBookmarked ? 'scale-105' : ''}`} />
               </button>
               <button 
                 onClick={toggleReadLater}
-                className={`${ACTION_BTN_BASE} ${isInReadLater ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE}`}
+                disabled={isReadLaterPending}
+                className={`${ACTION_BTN_BASE} ${isInReadLater ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE} disabled:cursor-wait disabled:opacity-80`}
                 title="Read Later"
               >
                 <Clock3 className={`${ACTION_ICON_CLASS} ${isInReadLater ? 'scale-105' : ''}`} />
@@ -743,14 +797,16 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
           <div className="flex gap-1.5 shrink-0">
             <button 
               onClick={toggleBookmark}
-              className={`${ACTION_BTN_BASE} ${isBookmarked ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE}`}
+              disabled={isBookmarkPending}
+              className={`${ACTION_BTN_BASE} ${isBookmarked ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE} disabled:cursor-wait disabled:opacity-80`}
               title="Bookmark"
             >
               <Bookmark className={`${ACTION_ICON_CLASS} ${isBookmarked ? 'scale-105' : ''}`} />
             </button>
             <button 
               onClick={toggleReadLater}
-              className={`${ACTION_BTN_BASE} ${isInReadLater ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE}`}
+              disabled={isReadLaterPending}
+              className={`${ACTION_BTN_BASE} ${isInReadLater ? ACTION_BTN_ACTIVE_PRIMARY : ACTION_BTN_INACTIVE} disabled:cursor-wait disabled:opacity-80`}
               title="Read Later"
             >
               <Clock3 className={`${ACTION_ICON_CLASS} ${isInReadLater ? 'scale-105' : ''}`} />
