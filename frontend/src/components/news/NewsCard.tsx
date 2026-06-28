@@ -24,6 +24,7 @@ const ACTION_BTN_ACTIVE_PRIMARY = 'text-white bg-gradient-to-br from-indigo-500 
 const ACTION_BTN_ACTIVE_SUCCESS = 'text-white bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/30';
 const ACTION_BTN_ACTIVE_WARNING = 'text-white bg-gradient-to-br from-orange-500 to-amber-600 shadow-lg shadow-orange-500/30';
 const ACTION_ICON_CLASS = 'w-[17px] h-[17px] stroke-[1.9] transition-transform duration-200';
+const ASK_BTN_CLASS = 'items-center gap-1 px-2 py-1.5 sm:px-2.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50/80 dark:bg-slate-700/70 border border-indigo-100 dark:border-slate-600/60 shadow-sm shadow-indigo-500/5 dark:shadow-black/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:text-indigo-700 dark:hover:text-indigo-200 hover:border-indigo-200 dark:hover:border-indigo-500/50 rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap';
 const FEEDBACK_MENU_CLASS = 'absolute left-0 bottom-full mb-2 rounded-2xl border py-3 px-2 z-[70] min-w-[180px] animate-slide-up origin-bottom-left bg-white border-gray-200 shadow-2xl backdrop-blur-xl dark:!bg-[#1f1f1f] dark:!border-[#2d2d30] dark:!shadow-black/80 dark:!ring-1 dark:!ring-[#2d2d30]';
 const FEEDBACK_MENU_HEADER_CLASS = 'px-2 py-1.5 text-[9px] uppercase tracking-widest font-bold text-gray-500 dark:!text-slate-300';
 const FEEDBACK_MENU_ITEM_CLASS = 'relative w-full text-left px-3 py-2.5 text-xs transition-all flex items-center gap-2.5 rounded-lg hover:bg-gray-100 dark:!hover:bg-[#2d2d30]/60 dark:!rounded-lg dark:!my-0.5 dark:!mx-0 border border-transparent dark:!border-transparent dark:!bg-[#1f1f1f]';
@@ -526,7 +527,7 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
               </Button>
               <button
                 onClick={() => openChatWithArticle(article.id, article.title)}
-                className="hidden sm:inline-flex items-center gap-1 px-2 py-1.5 sm:px-2.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                className={`hidden sm:inline-flex ${ASK_BTN_CLASS}`}
                 title="Ask AI about this article"
               >
                 <Bot className="w-3.5 h-3.5 stroke-[2.1]" />
@@ -759,7 +760,7 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
         <div className="absolute top-12 right-3 lg:hidden">
           <button
             onClick={() => openChatWithArticle(article.id, article.title)}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wide bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700 transition-colors"
+            className={`${ASK_BTN_CLASS} inline-flex px-2.5 py-1 rounded-lg font-semibold uppercase tracking-wide`}
             title="Ask AI about this article"
           >
             <Bot className="w-3.5 h-3.5 stroke-[2.1]" aria-hidden="true" />
@@ -892,7 +893,7 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
             </Button>
             <button
               onClick={() => openChatWithArticle(article.id, article.title)}
-              className="hidden lg:inline-flex items-center gap-1 px-2 py-1.5 sm:px-2.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-xl transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+              className={`hidden lg:inline-flex ${ASK_BTN_CLASS}`}
               title="Ask AI about this article"
             >
               <Bot className="w-3.5 h-3.5 stroke-[2.1]" />
