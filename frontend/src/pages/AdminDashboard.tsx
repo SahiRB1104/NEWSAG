@@ -92,7 +92,7 @@ export const AdminDashboard: React.FC<AdminLayoutProps> = ({ showNotification })
           <div className="border-t border-slate-200 dark:border-slate-800 p-6 space-y-2">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-16 py-3 bg-red-200 rounded-lg text-sm font-medium text-slate-800 dark:text-slate-300 hover:bg-red-400 dark:hover:bg-slate-400 transition-colors"
+              className="w-full flex items-center gap-2 px-16 py-3 bg-red-400 rounded-lg text-sm font-medium text-slate-800 dark:text-slate-100 dark:bg-red-500 hover:bg-red-600 dark:hover:bg-red-600 transition-colors"
             >
               <LogOut size={16} aria-hidden="true" />
               Logout
