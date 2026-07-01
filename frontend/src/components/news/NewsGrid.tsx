@@ -136,6 +136,11 @@ export const NewsGrid: React.FC<NewsGridProps> = React.memo(({
       : "flex flex-col gap-6"
   , [viewType]);
 
+  // Memoize error handler to prevent re-renders
+  const handleError = useCallback((msg: string) => {
+    onError(msg);
+  }, [onError]);
+
   useEffect(() => {
     if (isLoading) {
       setShowLoadingLayer(true);
@@ -148,11 +153,6 @@ export const NewsGrid: React.FC<NewsGridProps> = React.memo(({
 
     return () => clearTimeout(fadeTimer);
   }, [isLoading]);
-
-  // Memoize error handler to prevent re-renders
-  const handleError = useCallback((msg: string) => {
-    onError(msg);
-  }, [onError]);
 
   if (isLoading || showLoadingLayer) {
     return (
