@@ -49,6 +49,17 @@ interface NewsCardProps {
   onError?: (message: string) => void;
 }
 
+const areNewsCardPropsEqual = (prevProps: NewsCardProps, nextProps: NewsCardProps) => {
+  return (
+    prevProps.article === nextProps.article &&
+    prevProps.viewType === nextProps.viewType &&
+    prevProps.isBookmarked === nextProps.isBookmarked &&
+    prevProps.isInReadLater === nextProps.isInReadLater &&
+    prevProps.initialFeedbackSubmitted === nextProps.initialFeedbackSubmitted &&
+    prevProps.isReported === nextProps.isReported
+  );
+};
+
 // Memoized NewsCard to prevent unnecessary re-renders
 export const NewsCard: React.FC<NewsCardProps> = memo(({ 
   article, 
@@ -537,203 +548,209 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
           </div>
         </div>
 
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} forceLightTheme>
-          {isLoadingSummary ? (
-            <ArticleSkeleton />
-          ) : summaryError ? (
-            <div className="py-8 text-center font-serif">
-               <h4 className="font-serif text-2xl mb-4">DISPATCH ERROR</h4>
-               <p className="text-slate-600 mb-6">{summaryError}</p>
-               <Button onClick={() => setIsModalOpen(false)}>Close Bulletin</Button>
-            </div>
-          ) : (
-            <div
-              className="newspaper-paper border w-full"
-              style={{ backgroundColor: '#f1f1ef', borderColor: '#5a5a5a', outline: '1px solid #5a5a5a', outlineOffset: '4px' }}
-            >
-              <div className="border p-3 sm:p-4" style={{ borderColor: '#9b9b9b', borderWidth: '1px' }}>
-                 {/* Masthead */}
-                 <div className="text-center mb-3 pb-2 border-b-4 border-black border-double">
-                    <div className="mb-1">
-                      <span className="text-[8px] font-normal uppercase tracking-widest italic">Special AI Edition</span>
-                    </div>
-                    <h4 className="font-serif text-xl sm:text-2xl font-normal tracking-tight uppercase mb-1">
-                      {typeof article.source === 'string'
-                        ? article.source
-                        : (article.source as { name?: string })?.name || 'The Artificial Dispatch'}
-                    </h4>
-                 </div>
+        {isModalOpen && (
+          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} forceLightTheme>
+            {isLoadingSummary ? (
+              <ArticleSkeleton />
+            ) : summaryError ? (
+              <div className="py-8 text-center font-serif">
+                 <h4 className="font-serif text-2xl mb-4">DISPATCH ERROR</h4>
+                 <p className="text-slate-600 mb-6">{summaryError}</p>
+                 <Button onClick={() => setIsModalOpen(false)}>Close Bulletin</Button>
+              </div>
+            ) : (
+              <div
+                className="newspaper-paper border w-full"
+                style={{ backgroundColor: '#f1f1ef', borderColor: '#5a5a5a', outline: '1px solid #5a5a5a', outlineOffset: '4px' }}
+              >
+                <div className="border p-3 sm:p-4" style={{ borderColor: '#9b9b9b', borderWidth: '1px' }}>
+                   {/* Masthead */}
+                   <div className="text-center mb-3 pb-2 border-b-4 border-black border-double">
+                      <div className="mb-1">
+                        <span className="text-[8px] font-normal uppercase tracking-widest italic">Special AI Edition</span>
+                      </div>
+                      <h4 className="font-serif text-xl sm:text-2xl font-normal tracking-tight uppercase mb-1">
+                        {typeof article.source === 'string'
+                          ? article.source
+                          : (article.source as { name?: string })?.name || 'The Artificial Dispatch'}
+                      </h4>
+                   </div>
 
-                 {/* Headline */}
-                 <h2 className="font-serif text-lg sm:text-xl font-normal mb-2 leading-tight text-center italic">
-                   "{article.title}"
-                 </h2>
+                   {/* Headline */}
+                   <h2 className="font-serif text-lg sm:text-xl font-normal mb-2 leading-tight text-center italic">
+                     "{article.title}"
+                   </h2>
 
-                 {/* Language Selector */}
-                 <div className="flex items-center justify-center gap-2 mb-3">
-                   <label
-                     htmlFor="lang-select-list"
-                     className="text-[10px] uppercase tracking-widest font-semibold text-slate-700"
+                   {/* Language Selector */}
+                   <div className="flex items-center justify-center gap-2 mb-3">
+                     <label
+                       htmlFor="lang-select-list"
+                       className="text-[10px] uppercase tracking-widest font-semibold text-slate-700"
+                     >
+                       Translate
+                     </label>
+                     <select
+                       id="lang-select-list"
+                       value={selectedLang}
+                       onChange={(e) => handleLanguageChange(e.target.value)}
+                       disabled={isTranslating}
+                       className="text-xs border border-slate-500 rounded px-2 py-1 bg-white font-serif focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:opacity-50 text-slate-900"
+                     >
+                       {SUPPORTED_LANGUAGES.map((l) => (
+                         <option key={l.code} value={l.code}>
+                           {l.name}
+                         </option>
+                       ))}
+                     </select>
+                     {isTranslating && (
+                       <div className="w-4 h-4 border-2 border-slate-600 border-t-transparent rounded-full animate-spin"></div>
+                     )}
+                     {summaryData?.translated && (
+                       <span className="text-[9px] uppercase tracking-wider text-indigo-700 font-semibold">
+                         Translated
+                       </span>
+                     )}
+                   </div>
+
+                   {/* 2-Column Text Body */}
+                   <div 
+                     className={`text-base leading-snug text-justify md:columns-2 gap-6 whitespace-pre-wrap transition-opacity duration-300 ${isTranslating ? 'opacity-40' : ''} ${selectedLang === 'hi' ? 'devanagari' : ''}`}
+                     style={{ 
+                       ...(selectedLang !== 'hi' ? { fontFamily: 'Georgia, "Times New Roman", serif' } : {}),
+                       fontWeight: '300',
+                       opacity: isTranslating ? 0.4 : 0.85,
+                       color: '#333'
+                     }}
                    >
-                     Translate
-                   </label>
-                   <select
-                     id="lang-select-list"
-                     value={selectedLang}
-                     onChange={(e) => handleLanguageChange(e.target.value)}
-                     disabled={isTranslating}
-                     className="text-xs border border-slate-500 rounded px-2 py-1 bg-white font-serif focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:opacity-50 text-slate-900"
-                   >
-                     {SUPPORTED_LANGUAGES.map((l) => (
-                       <option key={l.code} value={l.code}>
-                         {l.name}
-                       </option>
-                     ))}
-                   </select>
-                   {isTranslating && (
-                     <div className="w-4 h-4 border-2 border-slate-600 border-t-transparent rounded-full animate-spin"></div>
-                   )}
-                   {summaryData?.translated && (
-                     <span className="text-[9px] uppercase tracking-wider text-indigo-700 font-semibold">
-                       Translated
-                     </span>
-                   )}
-                 </div>
-
-                 {/* 2-Column Text Body */}
-                 <div 
-                   className={`text-base leading-snug text-justify md:columns-2 gap-6 whitespace-pre-wrap transition-opacity duration-300 ${isTranslating ? 'opacity-40' : ''} ${selectedLang === 'hi' ? 'devanagari' : ''}`}
-                   style={{ 
-                     ...(selectedLang !== 'hi' ? { fontFamily: 'Georgia, "Times New Roman", serif' } : {}),
-                     fontWeight: '300',
-                     opacity: isTranslating ? 0.4 : 0.85,
-                     color: '#333'
-                   }}
-                 >
-                   {summary}
-                </div>
-
-                {/* Fallback indicator */}
-                {summaryData?.is_fallback && (
-                  <div className="mt-2 flex items-center justify-between px-3 py-1.5 rounded border" style={{ backgroundColor: '#fffbe6', borderColor: '#ffe58f' }}>
-                    <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: '#ad6800' }}>
-                      <AlertTriangle size={12} className="inline mr-1" aria-hidden="true" />
-                      {summaryData.source === 'description' ? 'Limited summary (from description)' : summaryData.source === 'placeholder' ? 'Summary unavailable' : 'Partial summary'}
-                    </span>
-                    <button
-                      onClick={handleRetrySummary}
-                      className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded hover:bg-amber-100 transition-colors"
-                      style={{ color: '#ad6800' }}
-                    >
-                      <RefreshCw size={12} className="inline mr-1" aria-hidden="true" /> Retry
-                    </button>
+                     {summary}
                   </div>
-                )}
 
-                {/* Audio Player for TTS */}
-                {summaryData?.audio_available && summaryData?.summary && (
-                  <div className="mt-4 pt-3 border-t border-slate-300 dark:border-slate-600">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[9px] uppercase tracking-widest text-slate-500">Listen to Summary</span>
-                    </div>
-                    <Suspense fallback={<div className="h-10 bg-slate-100 rounded-lg animate-pulse"></div>}>
-                      <AudioPlayer 
-                        text={summaryData.summary} 
-                        language={selectedLang}
-                        forceLightTheme
-                        className="bg-slate-50 px-3 rounded-lg"
-                      />
-                    </Suspense>
-                  </div>
-                )}
-              
-                {/* Horizontal Line Separator */}
-                <div className="border-t border-black mt-3"></div>
-              
-                {/* Action Footer */}
-                <div className="px-4 py-2" style={{backgroundColor: '#ececec'}}>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                    {/* Icon Buttons - Like & Comment */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button 
-                        onClick={() => setIsCommentsOpen(true)}
-                        className="p-1.5 hover:opacity-60 transition-opacity"
-                        title="Comments"
-                        style={{color: '#333'}}
+                  {/* Fallback indicator */}
+                  {summaryData?.is_fallback && (
+                    <div className="mt-2 flex items-center justify-between px-3 py-1.5 rounded border" style={{ backgroundColor: '#fffbe6', borderColor: '#ffe58f' }}>
+                      <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: '#ad6800' }}>
+                        <AlertTriangle size={12} className="inline mr-1" aria-hidden="true" />
+                        {summaryData.source === 'description' ? 'Limited summary (from description)' : summaryData.source === 'placeholder' ? 'Summary unavailable' : 'Partial summary'}
+                      </span>
+                      <button
+                        onClick={handleRetrySummary}
+                        className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded hover:bg-amber-100 transition-colors"
+                        style={{ color: '#ad6800' }}
                       >
-                        <MessageCircle size={20} aria-hidden="true" />
-                      </button>
-                      <button 
-                        onClick={() => setIsLiked(!isLiked)}
-                        className="p-1.5 hover:opacity-60 transition-opacity"
-                        title="Like"
-                        style={{color: '#333'}}
-                      >
-                        <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} aria-hidden="true" />
+                        <RefreshCw size={12} className="inline mr-1" aria-hidden="true" /> Retry
                       </button>
                     </div>
+                  )}
 
-                    <div className="hidden sm:block h-4 w-px" style={{backgroundColor: '#333', opacity: 0.3}}></div>
+                  {/* Audio Player for TTS */}
+                  {summaryData?.audio_available && summaryData?.summary && (
+                    <div className="mt-4 pt-3 border-t border-slate-300 dark:border-slate-600">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[9px] uppercase tracking-widest text-slate-500">Listen to Summary</span>
+                      </div>
+                      <Suspense fallback={<div className="h-10 bg-slate-100 rounded-lg animate-pulse"></div>}>
+                        <AudioPlayer 
+                          text={summaryData.summary} 
+                          language={selectedLang}
+                          forceLightTheme
+                          className="bg-slate-50 px-3 rounded-lg"
+                        />
+                      </Suspense>
+                    </div>
+                  )}
+                
+                  {/* Horizontal Line Separator */}
+                  <div className="border-t border-black mt-3"></div>
+                
+                  {/* Action Footer */}
+                  <div className="px-4 py-2" style={{backgroundColor: '#ececec'}}>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+                      {/* Icon Buttons - Like & Comment */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button 
+                          onClick={() => setIsCommentsOpen(true)}
+                          className="p-1.5 hover:opacity-60 transition-opacity"
+                          title="Comments"
+                          style={{color: '#333'}}
+                        >
+                          <MessageCircle size={20} aria-hidden="true" />
+                        </button>
+                        <button 
+                          onClick={() => setIsLiked(!isLiked)}
+                          className="p-1.5 hover:opacity-60 transition-opacity"
+                          title="Like"
+                          style={{color: '#333'}}
+                        >
+                          <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} aria-hidden="true" />
+                        </button>
+                      </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full sm:w-auto flex-wrap">
-                      <button 
-                        onClick={() => setIsModalOpen(false)}
-                        className="text-[9px] sm:text-[10px] font-normal uppercase tracking-widest text-slate-700 px-2 py-1 rounded hover:text-white hover:bg-indigo-600 transition-colors"
-                      >
-                        Close
-                      </button>
-                      <button 
-                        onClick={handleReadFullArticle}
-                        className="text-[9px] sm:text-[10px] font-normal uppercase tracking-widest border border-slate-800 px-2.5 sm:px-3 py-1 text-slate-900 bg-[#ececec] hover:text-white hover:border-indigo-600 hover:bg-indigo-600 transition-colors"
-                      >
-                        Read Full Article
-                      </button>
+                      <div className="hidden sm:block h-4 w-px" style={{backgroundColor: '#333', opacity: 0.3}}></div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full sm:w-auto flex-wrap">
+                        <button 
+                          onClick={() => setIsModalOpen(false)}
+                          className="text-[9px] sm:text-[10px] font-normal uppercase tracking-widest text-slate-700 px-2 py-1 rounded hover:text-white hover:bg-indigo-600 transition-colors"
+                        >
+                          Close
+                        </button>
+                        <button 
+                          onClick={handleReadFullArticle}
+                          className="text-[9px] sm:text-[10px] font-normal uppercase tracking-widest border border-slate-800 px-2.5 sm:px-3 py-1 text-slate-900 bg-[#ececec] hover:text-white hover:border-indigo-600 hover:bg-indigo-600 transition-colors"
+                        >
+                          Read Full Article
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </Modal>
+            )}
+          </Modal>
+        )}
 
-        <Modal isOpen={isCommentsOpen} onClose={() => setIsCommentsOpen(false)} title="Comments" accent="comments">
-          <Suspense fallback={<div className="py-8 flex items-center justify-center"><div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>}>
-            <CommentSection articleId={article.id} articleTitle={article.title} />
-          </Suspense>
-        </Modal>
+        {isCommentsOpen && (
+          <Modal isOpen={isCommentsOpen} onClose={() => setIsCommentsOpen(false)} title="Comments" accent="comments">
+            <Suspense fallback={<div className="py-8 flex items-center justify-center"><div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+              <CommentSection articleId={article.id} articleTitle={article.title} />
+            </Suspense>
+          </Modal>
+        )}
 
         {/* ✅ Report Misleading Modal */}
-        <Modal isOpen={showReportModal} onClose={() => setShowReportModal(false)} title="Report Misleading Content">
-          <div className="p-4">
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-              Help improve our AI by reporting potentially misleading or inaccurate content.
-            </p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Why do you think this is misleading?</label>
-              <textarea
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                placeholder="Optional: Describe the issue..."
-                className="w-full p-3 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                rows={3}
-              />
+        {showReportModal && (
+          <Modal isOpen={showReportModal} onClose={() => setShowReportModal(false)} title="Report Misleading Content">
+            <div className="p-4">
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                Help improve our AI by reporting potentially misleading or inaccurate content.
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Why do you think this is misleading?</label>
+                <textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Optional: Describe the issue..."
+                  className="w-full p-3 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setShowReportModal(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleReportMisleading}
+                  disabled={isSubmittingFeedback}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {isSubmittingFeedback ? 'Submitting...' : 'Submit Report'}
+                </Button>
+              </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setShowReportModal(false)}>
-                Cancel
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={handleReportMisleading}
-                disabled={isSubmittingFeedback}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                {isSubmittingFeedback ? 'Submitting...' : 'Submit Report'}
-              </Button>
-            </div>
-          </div>
-        </Modal>
+          </Modal>
+        )}
       </div>
     );
   }
@@ -1102,7 +1119,7 @@ export const NewsCard: React.FC<NewsCardProps> = memo(({
       </Modal>
     </div>
   );
-});
+}, areNewsCardPropsEqual);
 
 // Display name for React DevTools
 NewsCard.displayName = 'NewsCard';
