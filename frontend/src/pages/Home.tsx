@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useTransition } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { Grid3X3, Rows3 } from 'lucide-react';
@@ -55,6 +55,7 @@ export const Home: React.FC<HomeProps> = ({ showNotification }) => {
   
   // ✅ UI-only state: NEVER add to useEffect dependency array
   const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
+  const [, startViewTransition] = useTransition();
   const activeNewsRequestIdRef = useRef(0);
   const lastBackgroundRefreshAtRef = useRef<Partial<Record<Topic, number>>>({});
   const backgroundRefreshInFlightRef = useRef<Partial<Record<Topic, boolean>>>({});
@@ -62,6 +63,16 @@ export const Home: React.FC<HomeProps> = ({ showNotification }) => {
   const normalizeArticleKey = useCallback((value?: string | null) => {
     const key = (value || '').trim();
     return key.length > 0 ? key : null;
+  }, []);
+
+  const handleError = useCallback((msg: string) => {
+    showNotification(msg, 'error');
+  }, [showNotification]);
+
+  const handleViewChange = useCallback((nextView: 'grid' | 'list') => {
+    startViewTransition(() => {
+      setViewType(nextView);
+    });
   }, []);
 
   useEffect(() => {
@@ -452,7 +463,7 @@ export const Home: React.FC<HomeProps> = ({ showNotification }) => {
             {/* ✅ Pill Style Segmented Control - NO API calls */}
             <div className="flex items-center bg-white/95 dark:bg-[#252526]/95 backdrop-blur-sm rounded-full p-1 border border-gray-200 dark:border-[#3a3a3c] shadow-sm dark:shadow-black/30">
               <motion.button
-                onClick={() => setViewType('grid')}
+                onClick={() => handleViewChange('grid')}
                 className={`relative px-4 py-2 rounded-full bg-transparent transition-all duration-200 font-semibold text-sm flex items-center gap-2 ${
                   viewType === 'grid'
                     ? 'text-white dark:text-slate-100'
@@ -472,7 +483,7 @@ export const Home: React.FC<HomeProps> = ({ showNotification }) => {
                 <span className="hidden sm:inline relative z-10">Grid</span>
               </motion.button>
               <motion.button
-                onClick={() => setViewType('list')}
+                onClick={() => handleViewChange('list')}
                 disabled={isMobileViewport}
                 className={`relative px-4 py-2 rounded-full bg-transparent transition-all duration-200 font-semibold text-sm flex items-center gap-2 ${
                   viewType === 'list'
@@ -524,7 +535,7 @@ export const Home: React.FC<HomeProps> = ({ showNotification }) => {
             showColdStartProgress={effectiveIsLoading && showColdStartProgress}
             coldStartProgress={coldStartProgress}
             coldStartStep={coldStartStep}
-            onError={(msg) => showNotification(msg, 'error')} 
+            onError={handleError} 
           />
         </motion.div>
       )}
