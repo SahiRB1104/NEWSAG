@@ -664,7 +664,7 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
           <button
             onClick={() => handleTriggerTune(modelType)}
             disabled={tuning === modelType}
-            className="flex items-center justify-center gap-2 px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {tuning === modelType ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
             <span className="font-semibold text-xs">{tuning === modelType ? 'Starting...' : 'Start fine-tuning'}</span>
