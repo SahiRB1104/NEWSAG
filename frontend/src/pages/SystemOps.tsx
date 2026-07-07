@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Database, Eye, RefreshCcw, RotateCw, Server, Settings2 } from 'lucide-react';
 import { adminApi, type SystemStatus } from '../services/admin.service';
 import { notify } from '../lib/notify';
+import { Button } from '../components/ui/Button';
 
 interface SystemOpsProps {
   showNotification: (msg: string, type?: 'error' | 'success' | 'warning' | 'info') => void;
@@ -98,14 +99,15 @@ export const SystemOps: React.FC<SystemOpsProps> = ({ showNotification }) => {
         </p>
 
         <div className="space-y-3">
-          <button
+          <Button
             onClick={() => handleRefreshCache()}
             disabled={refreshing === 'all'}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            isLoading={refreshing === 'all'}
+            className="w-full justify-center"
           >
             <RotateCw size={16} className={refreshing === 'all' ? 'animate-spin' : ''} aria-hidden="true" />
             {refreshing === 'all' ? 'Refreshing...' : 'Refresh All Categories'}
-          </button>
+          </Button>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {[
@@ -117,11 +119,14 @@ export const SystemOps: React.FC<SystemOpsProps> = ({ showNotification }) => {
               'entertainment',
               'health',
             ].map((category) => (
-              <button
+              <Button
                 key={category}
+                variant="secondary"
+                size="sm"
                 onClick={() => handleRefreshCache(category)}
                 disabled={refreshing === category}
-                className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors capitalize"
+                isLoading={refreshing === category}
+                className="capitalize"
               >
                 {refreshing === category ? (
                   <>
@@ -131,7 +136,7 @@ export const SystemOps: React.FC<SystemOpsProps> = ({ showNotification }) => {
                 ) : (
                   category
                 )}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -177,13 +182,14 @@ export const SystemOps: React.FC<SystemOpsProps> = ({ showNotification }) => {
           </div>
         </div>
 
-        <button
+        <Button
+          variant="danger"
           onClick={handleResetQuota}
           disabled={resetting}
-          className="px-6 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          isLoading={resetting}
         >
           {resetting ? 'Resetting...' : 'Reset Quota'}
-        </button>
+        </Button>
       </div>
 
       {/* Monitoring & Logs */}
