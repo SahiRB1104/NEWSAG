@@ -22,6 +22,7 @@ import {
 } from '../services/admin.service';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorState } from '../components/ui/ErrorState';
+import { Button } from '../components/ui/Button';
 import { notify } from '../lib/notify';
 import { useAsyncState } from '../hooks/useAsyncState';
 import { SearchSkeleton } from '../components/ui/skeletons/SearchSkeleton';
@@ -566,23 +567,26 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
               Sentiment Feedback Browser
             </h2>
             <div className="flex flex-col sm:flex-row gap-2">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={handleManualRefresh}
                 disabled={loading}
-                className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                isLoading={loading}
+                className="w-full lg:w-auto"
               >
                 <RefreshCw size={16} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
                 {loading ? 'Refreshing...' : 'Refresh'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleExport}
                 disabled={!filteredSamples.length}
-                className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full lg:w-auto"
               >
                 <Download size={16} aria-hidden="true" />
                 Export Filtered
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -642,14 +646,15 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
               className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white"
             />
           </label>
-          <button
+          <Button
             type="button"
+            variant="primary"
             disabled={!anomalyConfig || panelBusy}
             onClick={handleAnomalyConfigSave}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 text-sm font-medium"
+            isLoading={panelBusy}
           >
             Save Threshold
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -784,24 +789,26 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
               Page {currentPage} of {totalPages}
             </p>
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={15} aria-hidden="true" />
                 Prev
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight size={15} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -899,14 +906,16 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
               <p className="text-xs text-slate-500 dark:text-slate-400">Manual Override</p>
               <div className="grid grid-cols-3 gap-2">
                 {(['positive', 'neutral', 'negative'] as const).map((label) => (
-                  <button
+                  <Button
                     key={label}
                     type="button"
+                    variant={overrideLabel === label ? 'primary' : 'secondary'}
+                    size="sm"
                     onClick={() => setOverrideLabel(label)}
-                    className={`px-3 py-2 text-xs rounded-lg border ${overrideLabel === label ? 'border-indigo-500 text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}
+                    className="px-3 py-2 text-xs"
                   >
                     {label.charAt(0).toUpperCase() + label.slice(1)}
-                  </button>
+                  </Button>
                 ))}
               </div>
               <textarea
@@ -916,23 +925,23 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
                 placeholder="Override reason (optional)"
                 className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white"
               />
-              <button
+              <Button
                 type="button"
+                variant="primary"
                 disabled={panelBusy}
                 onClick={handleOverrideSave}
-                className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
               >
                 Save Override
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="secondary"
                 disabled={panelBusy}
                 onClick={handleReanalyze}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50"
               >
                 <Search size={14} aria-hidden="true" />
                 Re-Analyze
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-3">
@@ -945,23 +954,23 @@ export const SentimentFeedback: React.FC<SentimentFeedbackProps> = ({ showNotifi
                 className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white"
               />
               <div className="flex items-center gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="warning"
                   disabled={panelBusy}
                   onClick={() => handleFlagToggle(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50"
                 >
                   <Flag size={14} aria-hidden="true" />
                   Flag
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   disabled={panelBusy}
                   onClick={() => handleFlagToggle(false)}
-                  className="px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg disabled:opacity-50"
                 >
                   Remove Flag
-                </button>
+                </Button>
               </div>
             </div>
           </div>
