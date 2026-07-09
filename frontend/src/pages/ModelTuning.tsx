@@ -22,6 +22,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { notify } from '../lib/notify';
 import { Skeleton } from '../components/ui/Skeleton';
 import DataImprovementTips from '../components/ui/DataImprovementTips';
+import { Button } from '../components/ui/Button';
 
 interface ModelTuningProps {
   showNotification: (msg: string, type?: 'error' | 'success' | 'warning' | 'info') => void;
@@ -661,31 +662,38 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-2">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => handleTriggerTune(modelType)}
             disabled={tuning === modelType}
-            className="flex items-center justify-center gap-2 px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            isLoading={tuning === modelType}
+            className="w-full justify-center"
           >
             {tuning === modelType ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
             <span className="font-semibold text-xs">{tuning === modelType ? 'Starting...' : 'Start fine-tuning'}</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => openModelVersions(modelType)}
-            className="flex items-center justify-center gap-2 px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="w-full justify-center"
           >
             <span className="font-semibold text-xs">Report</span>
             <ExternalLink size={14} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
 
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setConfigOpen(isConfigOpen ? null : modelType)}
-          className="w-full flex items-center justify-between px-2 py-1 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          className="w-full justify-between px-2 py-1 text-xs font-semibold"
         >
           <span>Hyperparameters</span>
           {isConfigOpen ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
-        </button>
+        </Button>
 
         {isConfigOpen && (
           <div className="mt-2 bg-slate-50 dark:bg-slate-800 rounded-lg p-2 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
@@ -948,23 +956,27 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
           )}
 
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleValidateCsv}
               disabled={!csvFile || csvValidating}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+              isLoading={csvValidating}
             >
               {csvValidating ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <CheckCircle2 size={14} aria-hidden="true" />}
               <span className="font-semibold text-xs">{csvValidating ? 'Validating...' : 'Validate CSV'}</span>
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="success"
+              size="sm"
               onClick={handleImportCsv}
               disabled={!csvValidation?.ready_to_import || csvImporting}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors disabled:opacity-50"
+              isLoading={csvImporting}
             >
               {csvImporting ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
               <span className="font-semibold text-xs">{csvImporting ? 'Importing...' : 'Import Valid Rows'}</span>
-            </button>
+            </Button>
           </div>
 
           {csvValidation && (
@@ -1211,13 +1223,14 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
                         Current
                       </span>
                     ) : (
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => notify.info('Rollback functionality will be enabled in Phase 4')}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                       >
                         <span className="font-semibold">Rollback</span>
                         <RotateCcw size={13} aria-hidden="true" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -1245,14 +1258,16 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
           <p className="text-base font-semibold text-slate-900 dark:text-white">
             {modelLabel} model {hasRunningJob ? '- training in progress' : '- latest run logs'}
           </p>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => activeLogJobId && fetchLogs(activeLogJobId)}
             disabled={!activeLogJobId || logsLoading}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+            isLoading={logsLoading}
           >
             <RefreshCw size={14} className={logsLoading ? 'animate-spin' : ''} aria-hidden="true" />
             <span className="font-semibold text-sm">Refresh</span>
-          </button>
+          </Button>
         </div>
 
         <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5">
@@ -1325,10 +1340,10 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`pb-2 text-xs font-semibold border-b-2 transition-colors ${
+                className={`rounded-none border-b-2 pb-2 text-xs font-semibold transition-colors ${
                   activeTab === tab.key
                     ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-300'
                 }`}
               >
                 {tab.label}
@@ -1396,10 +1411,13 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
                             {mapStatus(job.status).charAt(0).toUpperCase() + mapStatus(job.status).slice(1)}
                           </span>
                           {mapStatus(job.status) === 'running' && (
-                            <button
+                            <Button
+                              variant="danger"
+                              size="sm"
                               onClick={() => handleCancelJob(job.id)}
                               disabled={cancelling === job.id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-rose-300 dark:border-rose-700 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors disabled:opacity-50"
+                              isLoading={cancelling === job.id}
+                              className="px-2.5 py-1 text-xs"
                               title="Cancel this fine-tuning job"
                             >
                               {cancelling === job.id ? (
@@ -1408,13 +1426,16 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
                                 <Ban size={12} aria-hidden="true" />
                               )}
                               <span>Stop</span>
-                            </button>
+                            </Button>
                           )}
                           {mapStatus(job.status) !== 'running' && (
-                            <button
+                            <Button
+                              variant="secondary"
+                              size="sm"
                               onClick={() => handleDeleteJob(job.id)}
                               disabled={deletingJob === job.id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                              isLoading={deletingJob === job.id}
+                              className="px-2.5 py-1 text-xs"
                               title="Delete this completed job"
                             >
                               {deletingJob === job.id ? (
@@ -1423,7 +1444,7 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
                                 <Trash2 size={12} aria-hidden="true" />
                               )}
                               <span>Delete</span>
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -1438,25 +1459,29 @@ export const ModelTuning: React.FC<ModelTuningProps> = ({ showNotification }) =>
                     </p>
 
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setJobsPage((prev) => Math.max(1, prev - 1))}
                         disabled={!jobsMeta.has_prev || jobsLoading}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                        className="px-2.5 py-1.5 text-xs"
                       >
                         <ChevronLeft size={14} aria-hidden="true" />
                         Prev
-                      </button>
+                      </Button>
                       <span className="text-xs text-slate-600 dark:text-slate-400">
                         Page {jobsMeta.page} / {Math.max(1, jobsMeta.total_pages)}
                       </span>
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setJobsPage((prev) => prev + 1)}
                         disabled={!jobsMeta.has_next || jobsLoading}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                        className="px-2.5 py-1.5 text-xs"
                       >
                         Next
                         <ChevronRight size={14} aria-hidden="true" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
