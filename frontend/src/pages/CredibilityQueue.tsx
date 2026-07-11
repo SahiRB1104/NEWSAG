@@ -4,6 +4,7 @@ import { adminApi } from '../services/admin.service';
 import { notify } from '../lib/notify';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ErrorState } from '../components/ui/ErrorState';
+import { Button } from '../components/ui/Button';
 import { useAsyncState } from '../hooks/useAsyncState';
 import { BookmarkSkeleton } from '../components/ui/skeletons/BookmarkSkeleton';
 
@@ -120,16 +121,17 @@ export const CredibilityQueue: React.FC<CredibilityQueueProps> = ({ showNotifica
             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
               {reports.length} pending
             </span>
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={handleManualRefresh}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-medium text-slate-700 dark:text-slate-300
-              dark:bg-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              isLoading={loading}
             >
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
               {loading ? 'Refreshing...' : 'Refresh'}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -177,28 +179,32 @@ export const CredibilityQueue: React.FC<CredibilityQueueProps> = ({ showNotifica
                       </p>
                     )}
                     <div className="flex gap-3 pt-2">
-                      <button
+                      <Button
+                        variant="success"
+                        className="flex-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleVerify(report.id);
                         }}
                         disabled={verifying === report.id}
-                        className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                        isLoading={verifying === report.id}
                       >
                         <Check size={16} aria-hidden="true" />
                         {verifying === report.id ? 'Processing...' : 'Verify'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="danger"
+                        className="flex-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleReject(report.id);
                         }}
                         disabled={verifying === report.id}
-                        className="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                        isLoading={verifying === report.id}
                       >
                         <X size={16} aria-hidden="true" />
                         {verifying === report.id ? 'Processing...' : 'Reject'}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
