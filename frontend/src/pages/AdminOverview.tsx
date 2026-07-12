@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../services/admin.service';
 import { EmptyState } from '../components/ui/EmptyState';
 import { notify } from '../lib/notify';
+import { Button } from '../components/ui/Button';
 
 interface AdminOverviewProps {
   showNotification: (msg: string, type?: 'error' | 'success' | 'warning' | 'info') => void;
@@ -337,7 +338,9 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ showNotification }
           Quick Actions
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <button
+          <Button
+            type="button"
+            variant="secondary"
             onClick={async () => {
               await notify.promise(adminApi.refreshAllCache(), {
                 loading: 'Refreshing all cache categories...',
@@ -345,12 +348,14 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ showNotification }
                 error: 'Failed to refresh cache',
               });
             }}
-            className="p-3 rounded-lg border border-red-200 bg-red-50 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-100 hover:border-red-300 hover:shadow-sm dark:border-red-900/60 dark:bg-red-950/20 dark:hover:bg-red-900/30"
+            className="h-auto min-h-[88px] w-full flex-col items-start justify-start px-4 py-3 text-left"
           >
             <p className="font-medium text-slate-900 dark:text-white mb-1">Refresh News Cache</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">Clear and reload all categories</p>
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
             onClick={async () => {
               await notify.promise(adminApi.resetHitCounter(), {
                 loading: 'Resetting daily GNews quota...',
@@ -358,18 +363,20 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ showNotification }
                 error: 'Failed to reset quota',
               });
             }}
-            className="p-3 rounded-lg border border-red-200 bg-red-50 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-100 hover:border-red-300 hover:shadow-sm dark:border-red-900/60 dark:bg-red-950/20 dark:hover:bg-red-900/30"
+            className="h-auto min-h-[88px] w-full flex-col items-start justify-start px-4 py-3 text-left"
           >
             <p className="font-medium text-slate-900 dark:text-white mb-1">Reset GNews Quota</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">Reset daily hit counter</p>
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
             onClick={() => navigate('/admin/audit')}
-            className="p-3 rounded-lg border border-red-200 bg-red-50 text-left transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-100 hover:border-red-300 hover:shadow-sm dark:border-red-900/60 dark:bg-red-950/20 dark:hover:bg-red-900/30"
+            className="h-auto min-h-[88px] w-full flex-col items-start justify-start px-4 py-3 text-left"
           >
             <p className="font-medium text-slate-900 dark:text-white mb-1">View Audit Log</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">See recent admin actions</p>
-          </button>
+          </Button>
         </div>
       </div>
       {/* Sentiment distribution is shown on the Sentiment Feedback page */}
