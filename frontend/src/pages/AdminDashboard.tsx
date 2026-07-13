@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BarChart3, Bot, CheckCircle2, ClipboardList, LogOut, Menu, Settings, Smile, UserRound, X } from 'lucide-react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useClerk, useUser } from '@clerk/clerk-react';
+import { getButtonVariantClasses } from '../components/ui/Button';
 import AdminOverview from './AdminOverview.tsx';
 import CredibilityQueue from './CredibilityQueue.tsx';
 import SentimentFeedback from './SentimentFeedback.tsx';
@@ -59,7 +60,7 @@ export const AdminDashboard: React.FC<AdminLayoutProps> = ({ showNotification })
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="ml-auto lg:hidden text-slate-500 hover:text-slate-700"
+              className={getButtonVariantClasses('ghost', 'sm', 'ml-auto lg:hidden h-9 w-9 border-0 p-0')}
               aria-label="Close sidebar"
             >
               <X size={20} aria-hidden="true" />
@@ -76,10 +77,10 @@ export const AdminDashboard: React.FC<AdminLayoutProps> = ({ showNotification })
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`${getButtonVariantClasses('ghost', 'md', 'w-full justify-start gap-3 px-4 py-2.5')} ${
                   location.pathname === item.path
-                    ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-900/30 dark:text-indigo-300'
+                    : ''
                 }`}
               >
                 <Icon size={18} aria-hidden="true" />
@@ -92,7 +93,7 @@ export const AdminDashboard: React.FC<AdminLayoutProps> = ({ showNotification })
           <div className="border-t border-slate-200 dark:border-slate-800 p-6 space-y-2">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-16 py-3 bg-red-400 rounded-lg text-sm font-medium text-slate-800 dark:text-slate-100 dark:bg-red-500 hover:bg-red-600 dark:hover:bg-red-600 transition-colors"
+              className={getButtonVariantClasses('danger', 'md', 'w-full justify-center px-4 py-3')}
             >
               <LogOut size={16} aria-hidden="true" />
               Logout
@@ -110,7 +111,7 @@ export const AdminDashboard: React.FC<AdminLayoutProps> = ({ showNotification })
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-slate-600 dark:text-slate-400"
+            className={getButtonVariantClasses('ghost', 'sm', 'lg:hidden h-9 w-9 border-0 p-0')}
             aria-label="Open sidebar"
           >
             <Menu size={24} aria-hidden="true" />
