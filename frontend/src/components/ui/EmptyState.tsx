@@ -2,6 +2,7 @@ import React from 'react';
 import { BookmarkX, ChevronRight, Inbox, SearchX } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { getButtonVariantClasses } from './Button';
 
 interface EmptyStateProps {
   icon?: string | React.ReactNode;
@@ -59,7 +60,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         >
           <Link 
             to={action.href}
-            className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-600/40 transition-all"
+            className={getButtonVariantClasses('primary', 'md', 'px-6 py-3')}
           >
             {action.label}
             <ChevronRight size={16} className="ml-2" aria-hidden="true" />
