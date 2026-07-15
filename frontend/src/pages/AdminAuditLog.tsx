@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Download, Filter, RefreshCw } from 'lucide-react';
 import { adminApi } from '../services/admin.service';
 import { Skeleton } from '../components/ui/Skeleton';
+import { Button } from '../components/ui/Button';
 
 interface AuditLog {
   id: string;
@@ -176,28 +177,17 @@ export const AdminAuditLog: React.FC<AdminAuditLogProps> = ({ showNotification }
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-input bg-background hover:bg-accent transition-colors"
-          >
+          <Button variant="secondary" onClick={() => setShowFilters(!showFilters)}>
             <Filter size={16} aria-hidden="true" />
             Filters
-          </button>
-          <button
-            onClick={handleExportCSV}
-            disabled={logs.length === 0}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          </Button>
+          <Button variant="primary" onClick={handleExportCSV} disabled={logs.length === 0}>
             <Download size={16} aria-hidden="true" />
             Export CSV
-          </button>
-          <button
-            onClick={fetchAuditLogs}
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-input bg-background hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          </Button>
+          <Button variant="secondary" size="sm" onClick={fetchAuditLogs} disabled={loading} className="h-10 w-10 p-0" isLoading={loading}>
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -242,18 +232,12 @@ export const AdminAuditLog: React.FC<AdminAuditLogProps> = ({ showNotification }
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={handleApplyFilters}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
+            <Button variant="primary" onClick={handleApplyFilters}>
               Apply Filters
-            </button>
-            <button
-              onClick={handleClearFilters}
-              className="px-4 py-2 rounded-lg border border-input bg-background hover:bg-accent transition-colors"
-            >
+            </Button>
+            <Button variant="secondary" onClick={handleClearFilters}>
               Clear
-            </button>
+            </Button>
           </div>
         </div>
       )}
