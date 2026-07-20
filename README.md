@@ -12,7 +12,7 @@
 
 AI-augmented news reader for personalized discovery, saving, summaries, sentiment, credibility checks, and lightweight analytics.
 
-# Live -https://newsag-production.up.railway.app
+# Live -https://newsag-nine.vercel.app
 
 ## 🧭 Project Overview
 
