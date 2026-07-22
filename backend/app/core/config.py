@@ -50,12 +50,21 @@ class Settings:
     GNEWS_REFRESH_INTERVAL_SEC: int = int(os.getenv("GNEWS_REFRESH_INTERVAL_SEC", str(15 * 60)))
 
     # -----------------------------
-    # OLLAMA LLM CONFIG (CHATBOT ONLY)
+    # LLM CONFIG (CHATBOT ONLY)
     # -----------------------------
     # NOTE: This LLM is ONLY for chatbot responses.
     # Summarization and sentiment use separate ML services.
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
+
+    # Ollama (local development)
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2:1b")
     OLLAMA_TIMEOUT: float = float(os.getenv("OLLAMA_TIMEOUT", "90"))  # seconds (allow headroom for larger context)
+
+    # OpenRouter (production)
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
+    OPENROUTER_BASE_URL: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-ultra-550b-a55b:free")
+    OPENROUTER_TIMEOUT: float = float(os.getenv("OPENROUTER_TIMEOUT", "90"))
 
 settings = Settings()
