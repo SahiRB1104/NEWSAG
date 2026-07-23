@@ -1,0 +1,35 @@
+# VCS, editor, test, and local runtime artefacts
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+__pycache__/
+*.py[cod]
+.pytest_cache/
+htmlcov/
+.coverage
+tests/
+scripts/
+
+# Local virtual environments and logs
+.venv/
+venv/
+env/
+logs/
+*.log
+
+# Fine-tuned inference models are part of the image.  Training checkpoints and
+# Hugging Face caches are disposable and must not inflate the build context.
+models/training_runs/
+cache/
+.cache/
+huggingface/
+
+# OS and frontend artefacts are outside this backend image's scope
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
