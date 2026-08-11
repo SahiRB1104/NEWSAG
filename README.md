@@ -191,7 +191,7 @@ pytest
 | `CLERK_AUDIENCE` | Yes | `your-clerk-audience` | Expected JWT audience. |
 | `CLERK_API_KEY` | Yes for admin features | `sk_test_...` | Clerk Admin API key. |
 | `ADMIN_USER_IDS` | No | `user_123,user_456` | Comma-separated admin allowlist. |
-| `CLERK_ADMIN_METADATA_KEY` | No | `admin` | Metadata key used for admin checks. |
+| `CLERK_ADMIN_METADATA_KEY` | No | `admin,role` | Comma-separated Metadata key used for admin checks. |
 | `CLERK_ADMIN_ORG_ROLES` | No | `admin,owner` | Clerk org roles that grant admin access. |
 | `JWKS_FAILURE_COOLDOWN_SECONDS` | No | `30` | JWKS retry cooldown after auth provider errors. |
 | `GNEWS_API_KEY` | Yes | `your_gnews_key` | GNews API key used for news fetching. |
